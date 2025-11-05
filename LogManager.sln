@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LogManager", "src\LogManager\LogManager.csproj", "{F73A8F0F-6779-4821-8677-A1B2D0356A91}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LogManager.Tests", "tests\LogManager.Tests\LogManager.Tests.csproj", "{CF2453AE-BC6B-4FBE-BEE1-1170F5725E5B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F73A8F0F-6779-4821-8677-A1B2D0356A91}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F73A8F0F-6779-4821-8677-A1B2D0356A91}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F73A8F0F-6779-4821-8677-A1B2D0356A91}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F73A8F0F-6779-4821-8677-A1B2D0356A91}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CF2453AE-BC6B-4FBE-BEE1-1170F5725E5B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF2453AE-BC6B-4FBE-BEE1-1170F5725E5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF2453AE-BC6B-4FBE-BEE1-1170F5725E5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF2453AE-BC6B-4FBE-BEE1-1170F5725E5B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
