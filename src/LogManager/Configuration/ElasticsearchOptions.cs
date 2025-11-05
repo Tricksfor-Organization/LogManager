@@ -16,7 +16,8 @@ public class ElasticsearchOptions
     public List<string> NodeUris { get; set; } = new() { "http://elasticsearch:9200" };
 
     /// <summary>
-    /// Index format pattern (e.g., "logs-myapp-{0:yyyy.MM.dd}")
+    /// Index format pattern. Use double braces for the date token (e.g., "logs-myapp-{{0:yyyy.MM.dd}}") 
+    /// because the application name is injected via string.Format before the sink processes the date.
     /// </summary>
     public string IndexFormat { get; set; } = "logs-{0:yyyy.MM.dd}";
 
