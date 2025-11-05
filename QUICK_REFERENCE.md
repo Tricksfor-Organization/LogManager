@@ -44,8 +44,10 @@ builder.Services.AddLogManager(builder.Configuration);
 
 var app = builder.Build();
 app.UseCorrelationId();  // Track requests across services
-app.Run();
-Log.CloseAndFlush();
+
+// In .NET 6+, you can use an async Main method:
+await app.RunAsync();
+await Log.CloseAndFlushAsync();
 ```
 
 ### 3. Use in Your Code
@@ -121,7 +123,7 @@ public class MyService
     "Elasticsearch": {
       "Enabled": true,
       "NodeUris": ["http://elasticsearch:9200"],
-      "IndexFormat": "logs-myservice-{0:yyyy.MM.dd}",
+      "IndexFormat": "logs-myservice-{{0:yyyy.MM.dd}}",
       "Username": "${ELASTICSEARCH_USERNAME}",
       "Password": "${ELASTICSEARCH_PASSWORD}"
     }

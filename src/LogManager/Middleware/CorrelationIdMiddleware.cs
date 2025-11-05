@@ -16,10 +16,8 @@ public class CorrelationIdMiddleware
         _next = next ?? throw new ArgumentNullException(nameof(next));
     }
 
-    // Instance method is required by ASP.NET Core middleware pattern to access _next field
-#pragma warning disable CA1822 // Mark members as static
+
     public async Task InvokeAsync(HttpContext context)
-#pragma warning restore CA1822 // Mark members as static
     {
         var correlationId = GetOrCreateCorrelationId(context);
         

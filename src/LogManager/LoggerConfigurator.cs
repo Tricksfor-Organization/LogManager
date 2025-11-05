@@ -153,7 +153,9 @@ public static class LoggerConfigurator
     {
         var logPath = ExpandPath(fileOptions.Path);
         var rollingInterval = ParseRollingInterval(fileOptions.RollingInterval);
-        var fullPath = Path.Combine(logPath, fileOptions.FileNamePattern);
+        var fullPath = Path.IsPathRooted(fileOptions.FileNamePattern)
+            ? fileOptions.FileNamePattern
+            : Path.Combine(logPath, fileOptions.FileNamePattern);
 
         loggerConfig.WriteTo.File(
             path: fullPath,
@@ -194,7 +196,10 @@ public static class LoggerConfigurator
                 }
                 else if (!string.IsNullOrEmpty(esOptions.ApiKey))
                 {
-                    conn = conn.ApiKeyAuthentication(new Elasticsearch.Net.ApiKeyAuthenticationCredentials(esOptions.ApiKey));
+                    using (var credentials = new Elasticsearch.Net.ApiKeyAuthenticationCredentials(esOptions.ApiKey))
+                    {
+                        conn = conn.ApiKeyAuthentication(credentials);
+                    }
                 }
 
                 return conn;
