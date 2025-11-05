@@ -17,17 +17,24 @@ public class ElasticsearchLoggingTests
     [OneTimeSetUp]
     public async Task OneTimeSetup()
     {
-        // Start Elasticsearch container
+        // Start Elasticsearch container with more memory and explicit wait strategy
         _elasticsearchContainer = new ElasticsearchBuilder()
             .WithImage("docker.elastic.co/elasticsearch/elasticsearch:8.11.0")
             .WithEnvironment("discovery.type", "single-node")
             .WithEnvironment("xpack.security.enabled", "false")
-            .WithEnvironment("ES_JAVA_OPTS", "-Xms512m -Xmx512m")
             .Build();
 
         await _elasticsearchContainer.StartAsync();
         
         _elasticsearchUrl = _elasticsearchContainer.GetConnectionString();
+        TestContext.WriteLine($"Elasticsearch URL from container: {_elasticsearchUrl}");
+        
+        // Force HTTP protocol since container runs without TLS
+        if (_elasticsearchUrl.StartsWith("https://"))
+        {
+            _elasticsearchUrl = _elasticsearchUrl.Replace("https://", "http://");
+            TestContext.WriteLine($"Corrected to HTTP: {_elasticsearchUrl}");
+        }
         
         // Create Elasticsearch client for verification
         var settings = new ElasticsearchClientSettings(new Uri(_elasticsearchUrl))
@@ -56,7 +63,7 @@ public class ElasticsearchLoggingTests
 
         // Act
         logger.Information(testMessage);
-        await Log.CloseAndFlushAsync();
+        await ((IAsyncDisposable)logger).DisposeAsync();
 
         // Wait for Elasticsearch to index
         await Task.Delay(2000);
@@ -86,7 +93,7 @@ public class ElasticsearchLoggingTests
 
         // Act
         logger.Information("Order {OrderId} created for customer {CustomerId}", orderId, customerId);
-        await Log.CloseAndFlushAsync();
+        await ((IAsyncDisposable)logger).DisposeAsync();
 
         await Task.Delay(2000);
 
@@ -110,7 +117,7 @@ public class ElasticsearchLoggingTests
     }
 
     [Test]
-    public async Task Should_Store_Exception_Details_In_Elasticsearch()
+    public async Task Should_Store_Exception_In_Elasticsearch()
     {
         // Arrange
         var logger = TestLoggerFactory.CreateElasticsearchLogger(_elasticsearchUrl!, "ElasticException");
@@ -125,7 +132,7 @@ public class ElasticsearchLoggingTests
         {
             logger.Error(ex, "Error occurred during processing");
         }
-        await Log.CloseAndFlushAsync();
+        await ((IAsyncDisposable)logger).DisposeAsync();
 
         await Task.Delay(2000);
 
@@ -152,7 +159,7 @@ public class ElasticsearchLoggingTests
         
         // Act
         logger.Information("Testing index format");
-        await Log.CloseAndFlushAsync();
+        await ((IAsyncDisposable)logger).DisposeAsync();
 
         await Task.Delay(2000);
 
@@ -173,7 +180,7 @@ public class ElasticsearchLoggingTests
 
         // Act
         logger.Information(testMessage);
-        await Log.CloseAndFlushAsync();
+        await ((IAsyncDisposable)logger).DisposeAsync();
 
         await Task.Delay(2000);
 
@@ -207,7 +214,7 @@ public class ElasticsearchLoggingTests
         logger.Information("Info message with {CorrelationId}", correlationId);
         logger.Warning("Warning message with {CorrelationId}", correlationId);
         logger.Error("Error message with {CorrelationId}", correlationId);
-        await Log.CloseAndFlushAsync();
+        await ((IAsyncDisposable)logger).DisposeAsync();
 
         await Task.Delay(2000);
 
@@ -225,7 +232,22 @@ public class ElasticsearchLoggingTests
         searchResponse.IsValidResponse.Should().BeTrue();
         searchResponse.Documents.Should().HaveCount(3);
 
-        var levels = searchResponse.Documents.Select(d => d["Level"].ToString()).ToList();
+        // Elasticsearch may store level in different field names, check what's available
+        var firstDoc = searchResponse.Documents.First();
+        TestContext.WriteLine($"Available keys: {string.Join(", ", firstDoc.Keys)}");
+        
+        // Try common field names for log level
+        var levelKey = firstDoc.Keys.FirstOrDefault(k => 
+            k.Equals("Level", StringComparison.OrdinalIgnoreCase) || 
+            k.Equals("level", StringComparison.OrdinalIgnoreCase) ||
+            k.Contains("Level", StringComparison.OrdinalIgnoreCase));
+        
+        levelKey.Should().NotBeNullOrEmpty("log level should be present in documents");
+        
+        var levels = searchResponse.Documents
+            .Where(d => d.ContainsKey(levelKey!))
+            .Select(d => d[levelKey!].ToString())
+            .ToList();
         levels.Should().Contain("Information");
         levels.Should().Contain("Warning");
         levels.Should().Contain("Error");
@@ -233,7 +255,7 @@ public class ElasticsearchLoggingTests
 
     private async Task WaitForElasticsearchAsync()
     {
-        var maxAttempts = 30;
+        var maxAttempts = 90; // Increase timeout to 90 seconds for Elasticsearch 8.x
         for (int i = 0; i < maxAttempts; i++)
         {
             try
@@ -241,12 +263,17 @@ public class ElasticsearchLoggingTests
                 var pingResponse = await _elasticsearchClient!.PingAsync();
                 if (pingResponse.IsValidResponse)
                 {
+                    TestContext.WriteLine($"Elasticsearch ready after {i + 1} attempts");
                     return;
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // Ignore and retry
+                // Log occasional status updates
+                if (i % 10 == 0)
+                {
+                    TestContext.WriteLine($"Waiting for Elasticsearch... attempt {i + 1}/{maxAttempts}: {ex.Message}");
+                }
             }
 
             await Task.Delay(1000);

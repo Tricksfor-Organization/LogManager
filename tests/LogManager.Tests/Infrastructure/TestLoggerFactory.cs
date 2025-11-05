@@ -85,11 +85,7 @@ public static class TestLoggerFactory
             {
                 Enabled = true,
                 Url = lokiUrl,
-                Labels = new Dictionary<string, string>
-                {
-                    { "app", applicationName.ToLowerInvariant() },
-                    { "environment", "test" }
-                },
+                Labels = new Dictionary<string, string>(), // Don't duplicate app/environment, they're added automatically
                 BatchPostingLimit = 1, // Immediate for testing
                 Period = TimeSpan.FromMilliseconds(100)
             }
