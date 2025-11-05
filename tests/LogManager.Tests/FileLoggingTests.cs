@@ -146,7 +146,7 @@ public class FileLoggingTests
     public async Task Should_Handle_Relative_Path()
     {
         // Arrange
-        var relativePath = Path.Combine(".", "logs", "test");
+        var relativePath = Path.GetFullPath(Path.Combine(".", "logs", "test"));
         Directory.CreateDirectory(relativePath);
 
         try

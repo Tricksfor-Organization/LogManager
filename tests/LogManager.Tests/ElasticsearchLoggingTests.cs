@@ -37,9 +37,10 @@ public class ElasticsearchLoggingTests
         }
         
         // Create Elasticsearch client for verification
-        var settings = new ElasticsearchClientSettings(new Uri(_elasticsearchUrl))
-            .DefaultIndex("test-logs");
-        _elasticsearchClient = new ElasticsearchClient(settings);
+        // Note: ElasticsearchClientSettings is not disposable in Elastic.Clients.Elasticsearch 8.x
+        _elasticsearchClient = new ElasticsearchClient(
+            new ElasticsearchClientSettings(new Uri(_elasticsearchUrl))
+                .DefaultIndex("test-logs"));
 
         // Wait for Elasticsearch to be ready
         await WaitForElasticsearchAsync();
