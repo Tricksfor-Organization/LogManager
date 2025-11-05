@@ -10,7 +10,7 @@ public static class TestHelpers
     /// </summary>
     public static string CreateTempDirectory(string prefix = "logmanager_test")
     {
-        var tempPath = Path.Combine(Path.GetTempPath(), $"{prefix}_{Guid.NewGuid():N}");
+        var tempPath = Path.GetFullPath(Path.Combine(Path.GetTempPath(), $"{prefix}_{Guid.NewGuid():N}"));
         Directory.CreateDirectory(tempPath);
         return tempPath;
     }

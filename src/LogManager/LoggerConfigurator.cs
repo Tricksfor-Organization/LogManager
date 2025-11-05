@@ -169,6 +169,14 @@ public static class LoggerConfigurator
         );
     }
 
+    /// <summary>
+    /// Configures Elasticsearch sink with the specified options.
+    /// </summary>
+    /// <remarks>
+    /// The IndexFormat in ElasticsearchOptions must use double braces for the date token 
+    /// (e.g., "logs-myapp-{{0:yyyy.MM.dd}}") because the application name is injected 
+    /// via string.Format first, then Serilog uses the resulting format for the date.
+    /// </remarks>
     private static void ConfigureElasticsearchSink(
         LoggerConfiguration loggerConfig,
         ElasticsearchOptions esOptions,
@@ -281,11 +289,14 @@ public static class LoggerConfigurator
         // Expand environment variables
         path = Environment.ExpandEnvironmentVariables(path);
 
-        // Handle relative paths
+        // Handle relative paths by combining with base directory
         if (!Path.IsPathRooted(path))
         {
             path = Path.Combine(AppContext.BaseDirectory, path);
         }
+
+        // Normalize and resolve the path
+        path = Path.GetFullPath(path);
 
         // Ensure directory exists (treat input as a directory path)
         if (!Directory.Exists(path))

@@ -147,7 +147,8 @@ public class FileLoggingTests
     {
         // Arrange
         var relativePath = Path.Combine(".", "logs", "test");
-        Directory.CreateDirectory(relativePath);
+        var absolutePath = Path.GetFullPath(relativePath);
+        Directory.CreateDirectory(absolutePath);
 
         try
         {
@@ -157,15 +158,14 @@ public class FileLoggingTests
             await Log.CloseAndFlushAsync();
 
             // Assert
-            var absolutePath = Path.GetFullPath(relativePath);
             Directory.Exists(absolutePath).Should().BeTrue();
         }
         finally
         {
             // Cleanup
-            if (Directory.Exists(relativePath))
+            if (Directory.Exists(absolutePath))
             {
-                Directory.Delete(relativePath, recursive: true);
+                Directory.Delete(absolutePath, recursive: true);
             }
         }
     }
