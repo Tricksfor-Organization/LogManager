@@ -146,8 +146,9 @@ public class FileLoggingTests
     public async Task Should_Handle_Relative_Path()
     {
         // Arrange
-        var relativePath = Path.GetFullPath(Path.Combine(".", "logs", "test"));
-        Directory.CreateDirectory(relativePath);
+        var relativePath = Path.Combine(".", "logs", "test");
+        var absolutePath = Path.GetFullPath(relativePath);
+        Directory.CreateDirectory(absolutePath);
 
         try
         {
@@ -157,15 +158,14 @@ public class FileLoggingTests
             await Log.CloseAndFlushAsync();
 
             // Assert
-            var absolutePath = Path.GetFullPath(relativePath);
             Directory.Exists(absolutePath).Should().BeTrue();
         }
         finally
         {
             // Cleanup
-            if (Directory.Exists(relativePath))
+            if (Directory.Exists(absolutePath))
             {
-                Directory.Delete(relativePath, recursive: true);
+                Directory.Delete(absolutePath, recursive: true);
             }
         }
     }

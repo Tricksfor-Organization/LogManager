@@ -284,15 +284,14 @@ public static class LoggerConfigurator
         // Expand environment variables
         path = Environment.ExpandEnvironmentVariables(path);
 
-        // Handle relative paths - use GetFullPath to resolve and normalize
+        // Handle relative paths by combining with base directory
         if (!Path.IsPathRooted(path))
         {
-            path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, path));
+            path = Path.Combine(AppContext.BaseDirectory, path);
         }
-        else
-        {
-            path = Path.GetFullPath(path);
-        }
+
+        // Normalize and resolve the path
+        path = Path.GetFullPath(path);
 
         // Ensure directory exists (treat input as a directory path)
         if (!Directory.Exists(path))
