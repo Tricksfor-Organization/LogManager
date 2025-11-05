@@ -61,8 +61,8 @@ app.UseCorrelationId();
 
 app.MapGet("/", (ILogger<Program> logger) =>
 {
-		logger.LogInformation("Hello from {App} at {Time}", "Orders.Api", DateTimeOffset.UtcNow);
-		return Results.Ok(new { ok = true });
+    logger.LogInformation("Hello from {App} at {Time}", "Orders.Api", DateTimeOffset.UtcNow);
+    return Results.Ok(new { ok = true });
 });
 
 app.Run();
