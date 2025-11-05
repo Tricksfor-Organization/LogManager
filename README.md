@@ -157,31 +157,31 @@ You can also configure LogManager purely in code:
 ```csharp
 builder.Services.AddLogManager(options =>
 {
-		options.ApplicationName = "Orders.Api";
-		options.Environment = builder.Environment.EnvironmentName;
-		options.MinimumLevel = "Information";
-		options.EnableConsole = true;
+    options.ApplicationName = "Orders.Api";
+    options.Environment = builder.Environment.EnvironmentName;
+    options.MinimumLevel = "Information";
+    options.EnableConsole = true;
 
-		options.FileLogging = new()
-		{
-				Enabled = true,
-				Path = "/var/log/orders",
-				FileNamePattern = "orders-.log",
-				RollingInterval = "Day"
-		};
+    options.FileLogging = new()
+    {
+        Enabled = true,
+        Path = "/var/log/orders",
+        FileNamePattern = "orders-.log",
+        RollingInterval = "Day"
+    };
 
-		options.Loki = new()
-		{
-				Enabled = true,
-				Url = "http://loki:3100",
-				Labels = new() { ["service"] = "orders" }
-		};
+    options.Loki = new()
+    {
+        Enabled = true,
+        Url = "http://loki:3100",
+        Labels = new() { ["service"] = "orders" }
+    };
 });
 
 builder.Host.UseLogManager(options =>
 {
-		// You can also attach sinks/enrichers by setting options here
-		options.MinimumLevel = "Debug";
+    // You can also attach sinks/enrichers by setting options here
+    options.MinimumLevel = "Debug";
 });
 ```
 
