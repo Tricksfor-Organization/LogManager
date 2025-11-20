@@ -19,7 +19,7 @@ public class ElasticsearchLoggingTests
     {
         // Start Elasticsearch container with more memory and explicit wait strategy
         _elasticsearchContainer = new ElasticsearchBuilder()
-            .WithImage("docker.elastic.co/elasticsearch/elasticsearch:8.11.0")
+            .WithImage("docker.elastic.co/elasticsearch/elasticsearch:9.2.1")
             .WithEnvironment("discovery.type", "single-node")
             .WithEnvironment("xpack.security.enabled", "false")
             .Build();
@@ -71,7 +71,7 @@ public class ElasticsearchLoggingTests
 
         // Assert
         var searchResponse = await _elasticsearchClient!.SearchAsync<Dictionary<string, object>>(s => s
-            .Index("test-logs-elastictest-*")
+            .Indices("test-logs-elastictest-*")
             .Query(q => q
                 .Match(m => m
                     .Field("message"!)
@@ -100,7 +100,7 @@ public class ElasticsearchLoggingTests
 
         // Assert
         var searchResponse = await _elasticsearchClient!.SearchAsync<Dictionary<string, object>>(s => s
-            .Index("test-logs-elasticstructured-*")
+            .Indices("test-logs-elasticstructured-*")
             .Query(q => q
                 .Term(t => t
                     .Field("OrderId.keyword"!)
@@ -139,7 +139,7 @@ public class ElasticsearchLoggingTests
 
         // Assert
         var searchResponse = await _elasticsearchClient!.SearchAsync<Dictionary<string, object>>(s => s
-            .Index("test-logs-elasticexception-*")
+            .Indices("test-logs-elasticexception-*")
             .Query(q => q
                 .Match(m => m
                     .Field("exceptions.Message"!)
@@ -187,7 +187,7 @@ public class ElasticsearchLoggingTests
 
         // Assert
         var searchResponse = await _elasticsearchClient!.SearchAsync<Dictionary<string, object>>(s => s
-            .Index("test-logs-elasticenrich-*")
+            .Indices("test-logs-elasticenrich-*")
             .Query(q => q
                 .Match(m => m
                     .Field("message"!)
@@ -221,7 +221,7 @@ public class ElasticsearchLoggingTests
 
         // Assert
         var searchResponse = await _elasticsearchClient!.SearchAsync<Dictionary<string, object>>(s => s
-            .Index("test-logs-elasticlevels-*")
+            .Indices("test-logs-elasticlevels-*")
             .Query(q => q
                 .Term(t => t
                     .Field("CorrelationId.keyword"!)
