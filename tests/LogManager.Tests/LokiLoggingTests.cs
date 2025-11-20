@@ -1,8 +1,5 @@
 using FluentAssertions;
 using NUnit.Framework;
-using Serilog;
-using System.Net.Http.Json;
-using System.Text.Json;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
 using LogManager.Tests.Infrastructure;
@@ -21,7 +18,7 @@ public class LokiLoggingTests
     {
         // Start Loki container
         _lokiContainer = new ContainerBuilder()
-            .WithImage("grafana/loki:2.9.3")
+            .WithImage("grafana/loki:3.5.8")
             .WithPortBinding(3100, true)
             .WithWaitStrategy(Wait.ForUnixContainer().UntilHttpRequestIsSucceeded(r => r
                 .ForPort(3100)
