@@ -1,4 +1,4 @@
-using FluentAssertions;
+using Shouldly;
 using NUnit.Framework;
 using Serilog;
 using LogManager.Tests.Infrastructure;
@@ -41,11 +41,11 @@ public class FileLoggingTests
 
         // Assert
         var logFiles = Directory.GetFiles(_testLogDirectory!, "test-*.txt");
-        logFiles.Should().NotBeEmpty("log files should be created");
+        logFiles.ShouldNotBeEmpty("log files should be created");
 
         var logContent = await TestHelpers.ReadFileWithRetryAsync(logFiles[0]);
-        logContent.Should().Contain("Test log message");
-        logContent.Should().Contain("Another message with");
+        logContent.ShouldContain("Test log message");
+        logContent.ShouldContain("Another message with");
     }
 
     [Test]
@@ -67,9 +67,9 @@ public class FileLoggingTests
         var logContent = await TestHelpers.ReadFileWithRetryAsync(logFiles[0]);
 
         // The values should appear in the message
-        logContent.Should().Contain("123");
-        logContent.Should().Contain("456");
-        logContent.Should().Contain("Processing order");
+        logContent.ShouldContain("123");
+        logContent.ShouldContain("456");
+        logContent.ShouldContain("Processing order");
     }
 
     [Test]
@@ -95,9 +95,9 @@ public class FileLoggingTests
         var logFiles = Directory.GetFiles(_testLogDirectory!, "test-*.txt");
         var logContent = await TestHelpers.ReadFileWithRetryAsync(logFiles[0]);
 
-        logContent.Should().Contain("InvalidOperationException");
-        logContent.Should().Contain("Test exception message");
-        logContent.Should().Contain("An error occurred while processing");
+        logContent.ShouldContain("InvalidOperationException");
+        logContent.ShouldContain("Test exception message");
+        logContent.ShouldContain("An error occurred while processing");
     }
 
     [Test]
@@ -117,9 +117,9 @@ public class FileLoggingTests
         var logContent = await TestHelpers.ReadFileWithRetryAsync(logFiles[0]);
 
         // The message should be logged
-        logContent.Should().Contain("Testing enrichment");
+        logContent.ShouldContain("Testing enrichment");
         // File should not be empty
-        logContent.Should().NotBeNullOrWhiteSpace();
+        logContent.ShouldNotBeNullOrWhiteSpace();
     }
 
     [Test]
@@ -139,7 +139,7 @@ public class FileLoggingTests
 
         // Assert
         var logFiles = Directory.GetFiles(_testLogDirectory!, "test-*.txt");
-        logFiles.Should().NotBeEmpty("at least one log file should exist");
+        logFiles.ShouldNotBeEmpty("at least one log file should exist");
     }
 
     [Test]
@@ -158,7 +158,7 @@ public class FileLoggingTests
             await Log.CloseAndFlushAsync();
 
             // Assert
-            Directory.Exists(absolutePath).Should().BeTrue();
+            Directory.Exists(absolutePath).ShouldBeTrue();
         }
         finally
         {
@@ -191,10 +191,10 @@ public class FileLoggingTests
         var logFiles = Directory.GetFiles(_testLogDirectory!, "test-*.txt");
         var logContent = await TestHelpers.ReadFileWithRetryAsync(logFiles[0]);
 
-        logContent.Should().Contain("Debug message");
-        logContent.Should().Contain("Information message");
-        logContent.Should().Contain("Warning message");
-        logContent.Should().Contain("Error message");
-        logContent.Should().Contain("Fatal message");
+        logContent.ShouldContain("Debug message");
+        logContent.ShouldContain("Information message");
+        logContent.ShouldContain("Warning message");
+        logContent.ShouldContain("Error message");
+        logContent.ShouldContain("Fatal message");
     }
 }

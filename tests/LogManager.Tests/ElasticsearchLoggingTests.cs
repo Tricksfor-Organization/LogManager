@@ -1,5 +1,5 @@
 using Elastic.Clients.Elasticsearch;
-using FluentAssertions;
+using Shouldly;
 using NUnit.Framework;
 using Serilog;
 using Testcontainers.Elasticsearch;
@@ -80,8 +80,8 @@ public class ElasticsearchLoggingTests
             )
         );
 
-        searchResponse.IsValidResponse.Should().BeTrue();
-        searchResponse.Documents.Should().NotBeEmpty();
+            searchResponse.IsValidResponse.ShouldBeTrue();
+            searchResponse.Documents.ShouldNotBeEmpty();
     }
 
     [Test]
@@ -109,12 +109,12 @@ public class ElasticsearchLoggingTests
             )
         );
 
-        searchResponse.IsValidResponse.Should().BeTrue();
-        searchResponse.Documents.Should().NotBeEmpty();
+        searchResponse.IsValidResponse.ShouldBeTrue();
+        searchResponse.Documents.ShouldNotBeEmpty();
         
         var document = searchResponse.Documents.First();
-        document.Should().ContainKey("CustomerId");
-        document["CustomerId"].ToString().Should().Be(customerId.ToString());
+            document.ShouldContainKey("CustomerId");
+            document["CustomerId"].ToString().ShouldBe(customerId.ToString());
     }
 
     [Test]
@@ -148,8 +148,8 @@ public class ElasticsearchLoggingTests
             )
         );
 
-        searchResponse.IsValidResponse.Should().BeTrue();
-        searchResponse.Documents.Should().NotBeEmpty();
+        searchResponse.IsValidResponse.ShouldBeTrue();
+        searchResponse.Documents.ShouldNotBeEmpty();
     }
 
     [Test]
@@ -169,7 +169,7 @@ public class ElasticsearchLoggingTests
         var expectedIndex = $"test-logs-elasticindex-{today}";
 
         var indexResponse = await _elasticsearchClient!.Indices.ExistsAsync(expectedIndex);
-        indexResponse.Should().NotBeNull();
+          indexResponse.ShouldNotBeNull();
     }
 
     [Test]
@@ -196,12 +196,12 @@ public class ElasticsearchLoggingTests
             )
         );
 
-        searchResponse.IsValidResponse.Should().BeTrue();
-        searchResponse.Documents.Should().NotBeEmpty();
+        searchResponse.IsValidResponse.ShouldBeTrue();
+        searchResponse.Documents.ShouldNotBeEmpty();
 
         var document = searchResponse.Documents.First();
-        document.Should().ContainKey("ServiceName");
-        document["ServiceName"].ToString().Should().Be("ElasticEnrich");
+            document.ShouldContainKey("ServiceName");
+            document["ServiceName"].ToString().ShouldBe("ElasticEnrich");
     }
 
     [Test]
@@ -230,8 +230,8 @@ public class ElasticsearchLoggingTests
             )
         );
 
-        searchResponse.IsValidResponse.Should().BeTrue();
-        searchResponse.Documents.Should().HaveCount(3);
+        searchResponse.IsValidResponse.ShouldBeTrue();
+        searchResponse.Documents.Count.ShouldBe(3);
 
         // Elasticsearch may store level in different field names, check what's available
         var firstDoc = searchResponse.Documents.First();
@@ -243,15 +243,15 @@ public class ElasticsearchLoggingTests
             k.Equals("level", StringComparison.OrdinalIgnoreCase) ||
             k.Contains("Level", StringComparison.OrdinalIgnoreCase));
         
-        levelKey.Should().NotBeNullOrEmpty("log level should be present in documents");
+            levelKey.ShouldNotBeNullOrEmpty("log level should be present in documents");
         
         var levels = searchResponse.Documents
             .Where(d => d.ContainsKey(levelKey!))
             .Select(d => d[levelKey!].ToString())
             .ToList();
-        levels.Should().Contain("Information");
-        levels.Should().Contain("Warning");
-        levels.Should().Contain("Error");
+            levels.ShouldContain("Information");
+            levels.ShouldContain("Warning");
+            levels.ShouldContain("Error");
     }
 
     private async Task WaitForElasticsearchAsync()
