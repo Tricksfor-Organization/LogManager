@@ -1,4 +1,4 @@
-using FluentAssertions;
+using Shouldly;
 using NUnit.Framework;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
@@ -66,8 +66,8 @@ public class LokiLoggingTests
 
         // Assert
         var logs = await QueryLokiAsync("{app=\"lokitest\"}");
-        logs.Should().NotBeNull();
-        logs.Should().Contain(testMessage);
+        logs.ShouldNotBeNull();
+        logs.ShouldContain(testMessage);
     }
 
     [Test]
@@ -86,8 +86,8 @@ public class LokiLoggingTests
 
         // Assert
         var logs = await QueryLokiAsync("{app=\"lokistructured\"}");
-        logs.Should().Contain(orderId);
-        logs.Should().Contain(customerId.ToString());
+        logs.ShouldContain(orderId);
+        logs.ShouldContain(customerId.ToString());
     }
 
     [Test]
@@ -112,8 +112,8 @@ public class LokiLoggingTests
 
         // Assert
         var logs = await QueryLokiAsync("{app=\"lokiexception\"}");
-        logs.Should().Contain("InvalidOperationException");
-        logs.Should().Contain(exceptionMessage);
+        logs.ShouldContain("InvalidOperationException");
+        logs.ShouldContain(exceptionMessage);
     }
 
     [Test]
@@ -132,7 +132,7 @@ public class LokiLoggingTests
         // Assert
         // Query with environment label
         var logs = await QueryLokiAsync("{app=\"lokilabels\",environment=\"test\"}");
-        logs.Should().Contain(testMessage);
+        logs.ShouldContain(testMessage);
     }
 
     [Test]
@@ -158,10 +158,10 @@ public class LokiLoggingTests
         var hasWarning = logs.Contains("WRN") || logs.Contains("Warning");
         var hasError = logs.Contains("ERR") || logs.Contains("Error");
         
-        hasDebug.Should().BeTrue("should contain debug level");
-        hasInfo.Should().BeTrue("should contain info level");
-        hasWarning.Should().BeTrue("should contain warning level");
-        hasError.Should().BeTrue("should contain error level");
+        hasDebug.ShouldBeTrue("should contain debug level");
+        hasInfo.ShouldBeTrue("should contain info level");
+        hasWarning.ShouldBeTrue("should contain warning level");
+        hasError.ShouldBeTrue("should contain error level");
     }
 
     [Test]
@@ -182,9 +182,9 @@ public class LokiLoggingTests
 
         // Assert
         var logs = await QueryLokiAsync("{app=\"lokivolume\"}");
-        logs.Should().Contain(batchId);
+        logs.ShouldContain(batchId);
         // At least some entries should be present
-        logs.Should().Contain("entry");
+        logs.ShouldContain("entry");
     }
 
     [Test]
@@ -202,9 +202,9 @@ public class LokiLoggingTests
 
         // Assert
         var logs = await QueryLokiAsync("{app=\"lokienrich\"}");
-        logs.Should().Contain(testMessage);
+        logs.ShouldContain(testMessage);
         // Service context is verified via the app label in the query; the output template includes the message
-        logs.Should().Contain("Enrichment test", "should contain the enrichment test message");
+        logs.ShouldContain("Enrichment test", customMessage: "should contain the enrichment test message");
     }
 
     private async Task<string> QueryLokiAsync(string query)
