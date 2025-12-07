@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Serilog;
 using LogManager.Configuration;
 using LogManager.Enrichers;
@@ -43,14 +44,29 @@ public static class LogManagerExtensions
     }
 
     /// <summary>
-    /// Add LogManager with custom options and optional access to service collection
+    /// Add LogManager with access to IServiceProvider for resolving dependencies during configuration.
+    /// This uses IConfigureOptions pattern to safely access registered services.
     /// </summary>
+    /// <param name="services">The service collection</param>
+    /// <param name="configureOptions">Configuration action that receives options and service provider</param>
+    /// <returns>The service collection for chaining</returns>
+    /// <example>
+    /// services.AddLogManager((opts, sp) =>
+    /// {
+    ///     var myOptions = sp.GetRequiredService&lt;IOptions&lt;MyOptions&gt;&gt;().Value;
+    ///     opts.MinimumLevelEnum = myOptions.EnableDebug ? LogLevel.Debug : LogLevel.Information;
+    /// });
+    /// </example>
     public static IServiceCollection AddLogManager(
         this IServiceCollection services,
-        Action<LogManagerOptions, IServiceCollection?> configureOptions)
+        Action<LogManagerOptions, IServiceProvider> configureOptions)
     {
-        services.Configure<LogManagerOptions>(opts => configureOptions(opts, services));
+        services.AddOptions<LogManagerOptions>();
         services.AddSingleton<ICorrelationIdAccessor, DefaultCorrelationIdAccessor>();
+        
+        // Use IConfigureOptions pattern for safe service resolution
+        services.AddSingleton<IConfigureOptions<LogManagerOptions>>(sp =>
+            new ConfigureOptions<LogManagerOptions>(opts => configureOptions(opts, sp)));
 
         return services;
     }

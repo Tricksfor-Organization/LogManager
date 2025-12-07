@@ -5,8 +5,8 @@ This document describes the new enum-based configuration feature added to LogMan
 ## Overview
 
 This feature adds:
-1. **Type-safe enums** for `MinimumLevel` (using standard `Microsoft.Extensions.Logging.LogLevel`) and `RollingInterval` 
-2. **New overload** of `AddLogManager` that provides access to `IServiceCollection`
+1. **Type-safe enums** for `MinimumLevel` (using standard `Microsoft.Extensions.Logging.LogLevel`) and `FileRollingInterval` 
+2. **New overload** of `AddLogManager` that provides access to `IServiceProvider` using the proper `IConfigureOptions` pattern
 3. **Full backward compatibility** - existing string-based configuration continues to work
 
 ## New Enums
@@ -64,20 +64,19 @@ services.AddLogManager(opts =>
 });
 ```
 
-### 2. Configuration with Service Collection Access
+### 2. Configuration with Service Provider Access
 
-The new overload allows you to access other registered services during configuration:
+The new overload allows you to access other registered services during configuration using proper `IServiceProvider` pattern:
 
 ```csharp
 // Register some configuration
 services.Configure<MyAppOptions>(configuration.GetSection("MyApp"));
 
-// Use it in LogManager setup
-services.AddLogManager((opts, serviceCollection) =>
+// Use it in LogManager setup with IServiceProvider
+services.AddLogManager((opts, serviceProvider) =>
 {
-    // Access other services/options
-    using var tempProvider = serviceCollection!.BuildServiceProvider();
-    var myAppOptions = tempProvider.GetService<IOptions<MyAppOptions>>()?.Value;
+    // Safely resolve other services/options
+    var myAppOptions = serviceProvider.GetService<IOptions<MyAppOptions>>()?.Value;
 
     if (myAppOptions != null)
     {
@@ -91,6 +90,12 @@ services.AddLogManager((opts, serviceCollection) =>
     }
 });
 ```
+
+**Important:** This uses `IServiceProvider` (not `IServiceCollection`) through the `IConfigureOptions` pattern. This ensures:
+- ✅ Proper service lifetimes
+- ✅ No resource leaks
+- ✅ Services are resolved at the correct time
+- ✅ Integration with the options framework
 
 ### 3. Backward Compatibility
 
@@ -138,11 +143,12 @@ public FileRollingInterval? RollingIntervalEnum { get; set; }
 
 ```csharp
 /// <summary>
-/// Add LogManager with custom options and optional access to service collection
+/// Add LogManager with access to IServiceProvider for resolving dependencies during configuration.
+/// This uses IConfigureOptions pattern to safely access registered services.
 /// </summary>
 public static IServiceCollection AddLogManager(
     this IServiceCollection services,
-    Action<LogManagerOptions, IServiceCollection?> configureOptions)
+    Action<LogManagerOptions, IServiceProvider> configureOptions)
 ```
 
 ## Priority Rules
@@ -177,15 +183,14 @@ opts.MinimumLevelEnum = LogLevel.Info; // ✅ Compile error (caught immediately)
 ### 3. Standard .NET Type
 Uses the familiar `Microsoft.Extensions.Logging.LogLevel` that all .NET developers already know - no learning curve!
 
-### 4. Service Collection Access
+### 4. Service Provider Access
 Configure LogManager based on other registered services:
 
 ```csharp
-services.AddLogManager((opts, services) =>
+services.AddLogManager((opts, serviceProvider) =>
 {
     // Fetch feature flags, environment config, etc.
-    var featureFlags = services!.BuildServiceProvider()
-        .GetService<IFeatureFlags>();
+    var featureFlags = serviceProvider.GetService<IFeatureFlags>();
     
     if (featureFlags?.EnableVerboseLogging == true)
     {

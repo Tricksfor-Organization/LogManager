@@ -39,7 +39,7 @@ public static class EnumConfigurationExamples
     }
 
     /// <summary>
-    /// Example 2: Using the new overload with access to IServiceCollection
+    /// Example 2: Using the new overload with access to IServiceProvider
     /// This allows you to fetch other registered services or options during configuration
     /// </summary>
     public static void ConfigureWithServiceAccess()
@@ -53,36 +53,32 @@ public static class EnumConfigurationExamples
             opts.LogPath = "/custom/path";
         });
 
-        // Using the new overload that provides access to IServiceCollection
-        services.AddLogManager((opts, serviceCollection) =>
+        // Using the new overload that provides access to IServiceProvider
+        services.AddLogManager((opts, serviceProvider) =>
         {
             opts.ApplicationName = "MyApp";
             opts.Environment = "Development";
 
-            // Access other registered services/options
-            if (serviceCollection != null)
+            // Access other registered services/options safely
+            var myAppOptions = serviceProvider.GetService<IOptions<MyAppOptions>>()?.Value;
+
+            if (myAppOptions != null)
             {
-                using var tempProvider = serviceCollection.BuildServiceProvider();
-                var myAppOptions = tempProvider.GetService<IOptions<MyAppOptions>>()?.Value;
-
-                if (myAppOptions != null)
+                // Use values from other options
+                opts.MinimumLevelEnum = myAppOptions.LogLevel switch
                 {
-                    // Use values from other options
-                    opts.MinimumLevelEnum = myAppOptions.LogLevel switch
-                    {
-                        "Debug" => LogLevel.Debug,
-                        "Warning" => LogLevel.Warning,
-                        "Error" => LogLevel.Error,
-                        _ => LogLevel.Information
-                    };
+                    "Debug" => LogLevel.Debug,
+                    "Warning" => LogLevel.Warning,
+                    "Error" => LogLevel.Error,
+                    _ => LogLevel.Information
+                };
 
-                    opts.FileLogging = new FileLoggingOptions
-                    {
-                        Enabled = true,
-                        Path = myAppOptions.LogPath,
-                        RollingIntervalEnum = FileRollingInterval.Day
-                    };
-                }
+                opts.FileLogging = new FileLoggingOptions
+                {
+                    Enabled = true,
+                    Path = myAppOptions.LogPath,
+                    RollingIntervalEnum = FileRollingInterval.Day
+                };
             }
         });
     }
