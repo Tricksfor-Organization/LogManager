@@ -96,6 +96,35 @@ services.AddLogManager((opts, serviceProvider) =>
 - ✅ No resource leaks
 - ✅ Services are resolved at the correct time
 - ✅ Integration with the options framework
+- ✅ No manual `BuildServiceProvider()` calls needed
+
+**Alternative: Standard Options Pattern**
+
+You can also use the standard .NET options pattern for more complex scenarios:
+
+```csharp
+// Register LogManager first
+services.AddLogManager(configuration);
+
+// Configure based on other options using the options pattern
+services.AddOptions<LogManagerOptions>()
+    .Configure<IOptions<MyAppOptions>>((logOpts, myAppOpts) =>
+    {
+        logOpts.ApplicationName = myAppOpts.Value.AppName;
+        logOpts.MinimumLevelEnum = myAppOpts.Value.EnableDebug 
+            ? LogLevel.Debug 
+            : LogLevel.Information;
+        logOpts.FileLogging = new FileLoggingOptions
+        {
+            Path = myAppOpts.Value.LogPath,
+            RollingIntervalEnum = FileRollingInterval.Day
+        };
+    });
+```
+
+Both approaches are valid and use proper DI patterns. Choose based on your preference:
+- Use `AddLogManager((opts, sp) => ...)` for inline configuration
+- Use `AddOptions<T>().Configure<T>()` for more complex multi-dependency scenarios
 
 ### 3. Backward Compatibility
 
