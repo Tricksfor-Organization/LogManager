@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using LogManager.Configuration;
@@ -8,7 +9,7 @@ namespace LogManager.Examples;
 /// <summary>
 /// Examples demonstrating how to use the new enum-based configuration with optional service collection access
 /// </summary>
-public class EnumConfigurationExamples
+public static class EnumConfigurationExamples
 {
     /// <summary>
     /// Example 1: Using enums for cleaner configuration
@@ -34,9 +35,6 @@ public class EnumConfigurationExamples
                 RollingIntervalEnum = RollingInterval.Hour  // Type-safe enum!
             };
         });
-
-        // Build and use the service provider
-        var serviceProvider = services.BuildServiceProvider();
     }
 
     /// <summary>
@@ -86,8 +84,6 @@ public class EnumConfigurationExamples
                 }
             }
         });
-
-        var serviceProvider = services.BuildServiceProvider();
     }
 
     /// <summary>
@@ -110,19 +106,17 @@ public class EnumConfigurationExamples
                 RollingInterval = "Day"  // String still works
             };
         });
-
-        var serviceProvider = services.BuildServiceProvider();
     }
 
     /// <summary>
     /// Example 4: Configuration from appsettings.json remains unchanged
     /// </summary>
-    public static void ConfigureFromAppSettings()
+    public static void ConfigureFromAppSettings(IConfiguration configuration)
     {
         var services = new ServiceCollection();
         
         // This approach is unchanged and continues to work as before
-        // services.AddLogManager(configuration, "LogManager");
+        services.AddLogManager(configuration, "LogManager");
         
         // The IConfiguration-based overload remains exactly the same
     }
