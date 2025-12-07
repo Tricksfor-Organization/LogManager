@@ -24,8 +24,11 @@ public static class LoggerConfigurator
     {
         var loggerConfig = new LoggerConfiguration();
 
-        // Set minimum level
-        loggerConfig.MinimumLevel.Is(ParseLogLevel(options.MinimumLevel));
+        // Set minimum level - prefer enum if provided
+        var minLevel = options.MinimumLevelEnum.HasValue 
+            ? ConvertLogLevel(options.MinimumLevelEnum.Value)
+            : ParseLogLevel(options.MinimumLevel);
+        loggerConfig.MinimumLevel.Is(minLevel);
 
         // Apply level overrides
         foreach (var @override in options.MinimumLevelOverrides)
@@ -152,7 +155,10 @@ public static class LoggerConfigurator
         FileLoggingOptions fileOptions)
     {
         var logPath = ExpandPath(fileOptions.Path);
-        var rollingInterval = ParseRollingInterval(fileOptions.RollingInterval);
+        // Prefer enum if provided, otherwise parse string
+        var rollingInterval = fileOptions.RollingIntervalEnum.HasValue
+            ? ConvertRollingInterval(fileOptions.RollingIntervalEnum.Value)
+            : ParseRollingInterval(fileOptions.RollingInterval);
         var fullPath = Path.IsPathRooted(fileOptions.FileNamePattern)
             ? fileOptions.FileNamePattern
             : Path.Combine(logPath, fileOptions.FileNamePattern);
@@ -270,17 +276,46 @@ public static class LoggerConfigurator
         };
     }
 
-    private static RollingInterval ParseRollingInterval(string interval)
+    private static LogEventLevel ConvertLogLevel(Microsoft.Extensions.Logging.LogLevel level)
+    {
+        return level switch
+        {
+            Microsoft.Extensions.Logging.LogLevel.Trace => LogEventLevel.Verbose,
+            Microsoft.Extensions.Logging.LogLevel.Debug => LogEventLevel.Debug,
+            Microsoft.Extensions.Logging.LogLevel.Information => LogEventLevel.Information,
+            Microsoft.Extensions.Logging.LogLevel.Warning => LogEventLevel.Warning,
+            Microsoft.Extensions.Logging.LogLevel.Error => LogEventLevel.Error,
+            Microsoft.Extensions.Logging.LogLevel.Critical => LogEventLevel.Fatal,
+            Microsoft.Extensions.Logging.LogLevel.None => LogEventLevel.Fatal,
+            _ => LogEventLevel.Information
+        };
+    }
+
+    private static Serilog.RollingInterval ParseRollingInterval(string interval)
     {
         return interval.ToLowerInvariant() switch
         {
-            "infinite" => RollingInterval.Infinite,
-            "year" => RollingInterval.Year,
-            "month" => RollingInterval.Month,
-            "day" => RollingInterval.Day,
-            "hour" => RollingInterval.Hour,
-            "minute" => RollingInterval.Minute,
-            _ => RollingInterval.Day
+            "infinite" => Serilog.RollingInterval.Infinite,
+            "year" => Serilog.RollingInterval.Year,
+            "month" => Serilog.RollingInterval.Month,
+            "day" => Serilog.RollingInterval.Day,
+            "hour" => Serilog.RollingInterval.Hour,
+            "minute" => Serilog.RollingInterval.Minute,
+            _ => Serilog.RollingInterval.Day
+        };
+    }
+
+    private static Serilog.RollingInterval ConvertRollingInterval(Configuration.FileRollingInterval interval)
+    {
+        return interval switch
+        {
+            Configuration.FileRollingInterval.Infinite => Serilog.RollingInterval.Infinite,
+            Configuration.FileRollingInterval.Year => Serilog.RollingInterval.Year,
+            Configuration.FileRollingInterval.Month => Serilog.RollingInterval.Month,
+            Configuration.FileRollingInterval.Day => Serilog.RollingInterval.Day,
+            Configuration.FileRollingInterval.Hour => Serilog.RollingInterval.Hour,
+            Configuration.FileRollingInterval.Minute => Serilog.RollingInterval.Minute,
+            _ => Serilog.RollingInterval.Day
         };
     }
 

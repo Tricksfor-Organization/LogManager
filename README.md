@@ -185,6 +185,99 @@ builder.Host.UseLogManager(options =>
 });
 ```
 
+### Type-safe enum configuration
+
+For code-based configuration, you can use type-safe enums instead of strings for better IDE support and compile-time safety:
+
+```csharp
+using LogManager.Configuration;
+
+builder.Services.AddLogManager(options =>
+{
+    options.ApplicationName = "Orders.Api";
+    
+    // Use enums for type safety and IntelliSense support
+    options.MinimumLevelEnum = LogLevel.Warning;  // Instead of "Warning"
+    
+    options.FileLogging = new()
+    {
+        Enabled = true,
+        Path = "/var/log/orders",
+        RollingIntervalEnum = FileRollingInterval.Hour  // Instead of "Hour"
+    };
+});
+```
+
+**Available LogLevel values (Microsoft.Extensions.Logging.LogLevel):** `Trace`, `Debug`, `Information`, `Warning`, `Error`, `Critical`, `None`
+
+**Note:** `Trace` maps to Serilog's `Verbose`, and `Critical` maps to Serilog's `Fatal`.
+
+**Available RollingInterval values:** `Infinite`, `Year`, `Month`, `Day`, `Hour`, `Minute`
+
+**Note:** Enum properties take precedence over string properties. String-based configuration continues to work for backward compatibility and when binding from JSON configuration.
+
+### Configuration with service provider access
+
+If you need to access other registered services or options during LogManager configuration, use the overload that provides `IServiceProvider`. This uses the proper `IConfigureOptions` pattern for safe service resolution:
+
+```csharp
+// First, register your app-specific options
+builder.Services.Configure<MyAppOptions>(builder.Configuration.GetSection("MyApp"));
+
+// Then configure LogManager with access to the service provider
+builder.Services.AddLogManager((options, serviceProvider) =>
+{
+    options.ApplicationName = "Orders.Api";
+    
+    // Safely resolve other services/options (no BuildServiceProvider needed!)
+    var myAppOptions = serviceProvider.GetService<IOptions<MyAppOptions>>()?.Value;
+    
+    if (myAppOptions != null)
+    {
+        // Configure LogManager based on other options
+        options.MinimumLevelEnum = myAppOptions.EnableDebugLogging 
+            ? Microsoft.Extensions.Logging.LogLevel.Debug 
+            : Microsoft.Extensions.Logging.LogLevel.Information;
+        
+        options.FileLogging = new()
+        {
+            Enabled = true,
+            Path = myAppOptions.LogPath,
+            RollingIntervalEnum = FileRollingInterval.Day
+        };
+    }
+});
+```
+
+This is useful when LogManager needs configuration values from feature flags, database settings, or other parts of your application.
+
+**Note:** This overload uses `IServiceProvider` (not `IServiceCollection`) through the `IConfigureOptions` pattern. The framework handles service resolution at the proper time with correct lifetimes - you never need to call `BuildServiceProvider()` yourself.
+
+**Alternative approach** using the options pattern directly:
+
+```csharp
+// Register LogManager first
+builder.Services.AddLogManager(builder.Configuration);
+
+// Then configure it based on other options
+builder.Services.AddOptions<LogManagerOptions>()
+    .Configure<IOptions<MyAppOptions>>((logOpts, myAppOpts) =>
+    {
+        if (myAppOpts.Value.EnableDebugLogging)
+        {
+            logOpts.MinimumLevelEnum = Microsoft.Extensions.Logging.LogLevel.Debug;
+        }
+        logOpts.FileLogging = new()
+        {
+            Enabled = true,
+            Path = myAppOpts.Value.LogPath,
+            RollingIntervalEnum = FileRollingInterval.Day
+        };
+    });
+```
+
+Both approaches are valid - use whichever fits your scenario better.
+
 
 ## Correlation IDs
 
@@ -277,6 +370,10 @@ finally
 ## Testing and examples
 
 See `tests/LogManager.Tests` for examples covering File, Elasticsearch (via Testcontainers), and Loki (via Testcontainers). These tests demonstrate configuration patterns and validate that logs are emitted and queryable.
+
+For detailed examples of the new enum-based configuration and service collection access features, see:
+- `src/LogManager/Examples/EnumConfigurationExamples.cs` - Complete working examples
+- `ENUM_CONFIGURATION_GUIDE.md` - Comprehensive guide with migration tips
 
 
 ## License

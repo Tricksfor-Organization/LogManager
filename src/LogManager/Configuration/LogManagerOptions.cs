@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+
 namespace LogManager.Configuration;
 
 /// <summary>
@@ -19,6 +21,12 @@ public class LogManagerOptions
     /// Minimum log level (Verbose, Debug, Information, Warning, Error, Fatal)
     /// </summary>
     public string MinimumLevel { get; set; } = "Information";
+
+    /// <summary>
+    /// Minimum log level as enum (preferred for code-based configuration)
+    /// Uses Microsoft.Extensions.Logging.LogLevel
+    /// </summary>
+    public LogLevel? MinimumLevelEnum { get; set; }
 
     /// <summary>
     /// Enable console logging
