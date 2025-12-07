@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
 using Serilog.Exceptions;
@@ -276,16 +277,17 @@ public static class LoggerConfigurator
         };
     }
 
-    private static LogEventLevel ConvertLogLevel(Configuration.LogLevel level)
+    private static LogEventLevel ConvertLogLevel(Microsoft.Extensions.Logging.LogLevel level)
     {
         return level switch
         {
-            Configuration.LogLevel.Verbose => LogEventLevel.Verbose,
-            Configuration.LogLevel.Debug => LogEventLevel.Debug,
-            Configuration.LogLevel.Information => LogEventLevel.Information,
-            Configuration.LogLevel.Warning => LogEventLevel.Warning,
-            Configuration.LogLevel.Error => LogEventLevel.Error,
-            Configuration.LogLevel.Fatal => LogEventLevel.Fatal,
+            Microsoft.Extensions.Logging.LogLevel.Trace => LogEventLevel.Verbose,
+            Microsoft.Extensions.Logging.LogLevel.Debug => LogEventLevel.Debug,
+            Microsoft.Extensions.Logging.LogLevel.Information => LogEventLevel.Information,
+            Microsoft.Extensions.Logging.LogLevel.Warning => LogEventLevel.Warning,
+            Microsoft.Extensions.Logging.LogLevel.Error => LogEventLevel.Error,
+            Microsoft.Extensions.Logging.LogLevel.Critical => LogEventLevel.Fatal,
+            Microsoft.Extensions.Logging.LogLevel.None => LogEventLevel.Fatal,
             _ => LogEventLevel.Information
         };
     }

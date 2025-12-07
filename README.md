@@ -208,7 +208,9 @@ builder.Services.AddLogManager(options =>
 });
 ```
 
-**Available LogLevel values:** `Verbose`, `Debug`, `Information`, `Warning`, `Error`, `Fatal`
+**Available LogLevel values (Microsoft.Extensions.Logging.LogLevel):** `Trace`, `Debug`, `Information`, `Warning`, `Error`, `Critical`, `None`
+
+**Note:** `Trace` maps to Serilog's `Verbose`, and `Critical` maps to Serilog's `Fatal`.
 
 **Available RollingInterval values:** `Infinite`, `Year`, `Month`, `Day`, `Hour`, `Minute`
 
@@ -237,8 +239,8 @@ builder.Services.AddLogManager((options, services) =>
         {
             // Configure LogManager based on other options
             options.MinimumLevelEnum = myAppOptions.EnableDebugLogging 
-                ? LogLevel.Debug 
-                : LogLevel.Information;
+                ? Microsoft.Extensions.Logging.LogLevel.Debug 
+                : Microsoft.Extensions.Logging.LogLevel.Information;
             
             options.FileLogging = new()
             {

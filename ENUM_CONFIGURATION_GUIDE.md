@@ -5,7 +5,7 @@ This document describes the new enum-based configuration feature added to LogMan
 ## Overview
 
 This feature adds:
-1. **Type-safe enums** for `MinimumLevel` and `RollingInterval` 
+1. **Type-safe enums** for `MinimumLevel` (using standard `Microsoft.Extensions.Logging.LogLevel`) and `RollingInterval` 
 2. **New overload** of `AddLogManager` that provides access to `IServiceCollection`
 3. **Full backward compatibility** - existing string-based configuration continues to work
 
@@ -13,15 +13,18 @@ This feature adds:
 
 ### LogLevel Enum
 
+LogManager uses the standard `Microsoft.Extensions.Logging.LogLevel` enum that .NET developers are already familiar with:
+
 ```csharp
 public enum LogLevel
 {
-    Verbose,
-    Debug,
-    Information,
-    Warning,
-    Error,
-    Fatal
+    Trace = 0,      // Maps to Serilog Verbose
+    Debug = 1,      // Maps to Serilog Debug
+    Information = 2,// Maps to Serilog Information
+    Warning = 3,    // Maps to Serilog Warning
+    Error = 4,      // Maps to Serilog Error
+    Critical = 5,   // Maps to Serilog Fatal
+    None = 6        // Maps to Serilog Fatal
 }
 ```
 
@@ -44,6 +47,9 @@ public enum RollingInterval
 ### 1. Simple Enum-Based Configuration
 
 ```csharp
+using Microsoft.Extensions.Logging;  // For LogLevel
+using LogManager.Configuration;      // For RollingInterval
+
 services.AddLogManager(opts =>
 {
     opts.ApplicationName = "MyApp";
@@ -114,6 +120,7 @@ services.AddLogManager(configuration, "LogManager");  // ✅ Still works!
 ```csharp
 /// <summary>
 /// Minimum log level as enum (preferred for code-based configuration)
+/// Uses standard Microsoft.Extensions.Logging.LogLevel
 /// </summary>
 public LogLevel? MinimumLevelEnum { get; set; }
 ```
@@ -156,7 +163,7 @@ opts.MinimumLevelEnum = LogLevel.Error; // This wins!
 No more guessing valid values - your IDE shows all options:
 
 ```csharp
-opts.MinimumLevelEnum = LogLevel.   // IDE shows: Verbose, Debug, Information, ...
+opts.MinimumLevelEnum = LogLevel.   // IDE shows: Trace, Debug, Information, Warning, Error, Critical, None
 ```
 
 ### 2. Compile-Time Safety
@@ -167,8 +174,8 @@ opts.MinimumLevel = "Informaton";      // ❌ Runtime error (typo)
 opts.MinimumLevelEnum = LogLevel.Info; // ✅ Compile error (caught immediately)
 ```
 
-### 3. Refactoring Support
-Renaming enum values updates all usages automatically - safer than strings.
+### 3. Standard .NET Type
+Uses the familiar `Microsoft.Extensions.Logging.LogLevel` that all .NET developers already know - no learning curve!
 
 ### 4. Service Collection Access
 Configure LogManager based on other registered services:
@@ -182,7 +189,7 @@ services.AddLogManager((opts, services) =>
     
     if (featureFlags?.EnableVerboseLogging == true)
     {
-        opts.MinimumLevelEnum = LogLevel.Debug;
+        opts.MinimumLevelEnum = LogLevel.Trace;  // Microsoft.Extensions.Logging.LogLevel.Trace
     }
 });
 ```
