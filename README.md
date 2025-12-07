@@ -203,7 +203,7 @@ builder.Services.AddLogManager(options =>
     {
         Enabled = true,
         Path = "/var/log/orders",
-        RollingIntervalEnum = RollingInterval.Hour  // Instead of "Hour"
+        RollingIntervalEnum = FileRollingInterval.Hour  // Instead of "Hour"
     };
 });
 ```
@@ -246,7 +246,7 @@ builder.Services.AddLogManager((options, services) =>
             {
                 Enabled = true,
                 Path = myAppOptions.LogPath,
-                RollingIntervalEnum = RollingInterval.Day
+                RollingIntervalEnum = FileRollingInterval.Day
             };
         }
     }

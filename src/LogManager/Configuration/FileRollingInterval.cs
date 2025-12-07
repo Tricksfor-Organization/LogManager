@@ -3,7 +3,7 @@ namespace LogManager.Configuration;
 /// <summary>
 /// Specifies the frequency at which the log file should roll
 /// </summary>
-public enum RollingInterval
+public enum FileRollingInterval
 {
     /// <summary>
     /// The log file will never roll; no time period information will be appended to the log file name

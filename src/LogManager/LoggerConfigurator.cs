@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
 using Serilog.Exceptions;
@@ -306,16 +305,16 @@ public static class LoggerConfigurator
         };
     }
 
-    private static Serilog.RollingInterval ConvertRollingInterval(Configuration.RollingInterval interval)
+    private static Serilog.RollingInterval ConvertRollingInterval(Configuration.FileRollingInterval interval)
     {
         return interval switch
         {
-            Configuration.RollingInterval.Infinite => Serilog.RollingInterval.Infinite,
-            Configuration.RollingInterval.Year => Serilog.RollingInterval.Year,
-            Configuration.RollingInterval.Month => Serilog.RollingInterval.Month,
-            Configuration.RollingInterval.Day => Serilog.RollingInterval.Day,
-            Configuration.RollingInterval.Hour => Serilog.RollingInterval.Hour,
-            Configuration.RollingInterval.Minute => Serilog.RollingInterval.Minute,
+            Configuration.FileRollingInterval.Infinite => Serilog.RollingInterval.Infinite,
+            Configuration.FileRollingInterval.Year => Serilog.RollingInterval.Year,
+            Configuration.FileRollingInterval.Month => Serilog.RollingInterval.Month,
+            Configuration.FileRollingInterval.Day => Serilog.RollingInterval.Day,
+            Configuration.FileRollingInterval.Hour => Serilog.RollingInterval.Hour,
+            Configuration.FileRollingInterval.Minute => Serilog.RollingInterval.Minute,
             _ => Serilog.RollingInterval.Day
         };
     }

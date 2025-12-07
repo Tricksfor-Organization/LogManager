@@ -33,7 +33,7 @@ public static class EnumConfigurationExamples
             {
                 Enabled = true,
                 Path = "/var/log/myapp",
-                RollingIntervalEnum = RollingInterval.Hour  // Type-safe enum!
+                RollingIntervalEnum = FileRollingInterval.Hour  // Type-safe enum!
             };
         });
     }
@@ -80,7 +80,7 @@ public static class EnumConfigurationExamples
                     {
                         Enabled = true,
                         Path = myAppOptions.LogPath,
-                        RollingIntervalEnum = RollingInterval.Day
+                        RollingIntervalEnum = FileRollingInterval.Day
                     };
                 }
             }

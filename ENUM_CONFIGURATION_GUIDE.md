@@ -31,7 +31,7 @@ public enum LogLevel
 ### RollingInterval Enum
 
 ```csharp
-public enum RollingInterval
+public enum FileRollingInterval
 {
     Infinite,  // Never roll
     Year,      // Roll every year
@@ -48,7 +48,7 @@ public enum RollingInterval
 
 ```csharp
 using Microsoft.Extensions.Logging;  // For LogLevel
-using LogManager.Configuration;      // For RollingInterval
+using LogManager.Configuration;      // For FileRollingInterval
 
 services.AddLogManager(opts =>
 {
@@ -59,7 +59,7 @@ services.AddLogManager(opts =>
     {
         Enabled = true,
         Path = "/var/log/myapp",
-        RollingIntervalEnum = RollingInterval.Hour  // No string magic!
+        RollingIntervalEnum = FileRollingInterval.Hour  // No string magic!
     };
 });
 ```
@@ -86,7 +86,7 @@ services.AddLogManager((opts, serviceCollection) =>
         opts.FileLogging = new FileLoggingOptions
         {
             Path = myAppOptions.LogPath,
-            RollingIntervalEnum = RollingInterval.Day
+            RollingIntervalEnum = FileRollingInterval.Day
         };
     }
 });
@@ -131,7 +131,7 @@ public LogLevel? MinimumLevelEnum { get; set; }
 /// <summary>
 /// Rolling interval as enum (preferred for code-based configuration)
 /// </summary>
-public RollingInterval? RollingIntervalEnum { get; set; }
+public FileRollingInterval? RollingIntervalEnum { get; set; }
 ```
 
 ### New Extension Method
@@ -219,7 +219,7 @@ services.AddLogManager(opts =>
     opts.MinimumLevelEnum = LogLevel.Warning;
     opts.FileLogging = new FileLoggingOptions
     {
-        RollingIntervalEnum = RollingInterval.Hour
+        RollingIntervalEnum = FileRollingInterval.Hour
     };
 });
 ```
