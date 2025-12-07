@@ -51,9 +51,9 @@ public class FileLoggingOptions
     public bool Shared { get; set; } = true;
 
     /// <summary>
-    /// Buffer size for file writes
+    /// Buffer size for file writes (cannot be true when Shared is true)
     /// </summary>
-    public bool Buffered { get; set; } = true;
+    public bool Buffered { get; set; } = false;
 
     /// <summary>
     /// Output template for file logs
