@@ -21,6 +21,11 @@ public class LogManagerOptions
     public string MinimumLevel { get; set; } = "Information";
 
     /// <summary>
+    /// Minimum log level as enum (preferred for code-based configuration)
+    /// </summary>
+    public LogLevel? MinimumLevelEnum { get; set; }
+
+    /// <summary>
     /// Enable console logging
     /// </summary>
     public bool EnableConsole { get; set; } = true;

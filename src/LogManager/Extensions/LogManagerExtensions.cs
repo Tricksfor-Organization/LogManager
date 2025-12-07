@@ -43,6 +43,19 @@ public static class LogManagerExtensions
     }
 
     /// <summary>
+    /// Add LogManager with custom options and optional access to service collection
+    /// </summary>
+    public static IServiceCollection AddLogManager(
+        this IServiceCollection services,
+        Action<LogManagerOptions, IServiceCollection?> configureOptions)
+    {
+        services.Configure<LogManagerOptions>(opts => configureOptions(opts, services));
+        services.AddSingleton<ICorrelationIdAccessor, DefaultCorrelationIdAccessor>();
+
+        return services;
+    }
+
+    /// <summary>
     /// Convenience helper to override the log file path via DI registration.
     /// </summary>
     public static IServiceCollection AddLogManagerFilePath(

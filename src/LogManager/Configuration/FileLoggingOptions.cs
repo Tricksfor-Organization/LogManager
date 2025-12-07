@@ -26,6 +26,11 @@ public class FileLoggingOptions
     public string RollingInterval { get; set; } = "Day";
 
     /// <summary>
+    /// Rolling interval as enum (preferred for code-based configuration)
+    /// </summary>
+    public RollingInterval? RollingIntervalEnum { get; set; }
+
+    /// <summary>
     /// Number of days to retain log files (0 = unlimited)
     /// </summary>
     public int RetainedFileCountLimit { get; set; } = 31;
