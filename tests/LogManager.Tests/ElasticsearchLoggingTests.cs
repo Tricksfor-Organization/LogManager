@@ -1,9 +1,9 @@
 using Elastic.Clients.Elasticsearch;
 using Shouldly;
 using NUnit.Framework;
-using Serilog;
 using Testcontainers.Elasticsearch;
 using LogManager.Tests.Infrastructure;
+using DotNet.Testcontainers.Builders;
 
 namespace LogManager.Tests;
 
@@ -17,14 +17,22 @@ public class ElasticsearchLoggingTests
     [OneTimeSetUp]
     public async Task OneTimeSetup()
     {
+        TestContext.WriteLine("Creating Elasticsearch container...");
+        
         // Start Elasticsearch container with more memory and explicit wait strategy
-        _elasticsearchContainer = new ElasticsearchBuilder()
-            .WithImage("docker.elastic.co/elasticsearch/elasticsearch:9.2.1")
+        _elasticsearchContainer = new ElasticsearchBuilder("docker.elastic.co/elasticsearch/elasticsearch:9.2.3")
             .WithEnvironment("discovery.type", "single-node")
             .WithEnvironment("xpack.security.enabled", "false")
+            .WithEnvironment("ES_JAVA_OPTS", "-Xms512m -Xmx512m")
+            .WithPortBinding(9200, true)
+            .WithWaitStrategy(Wait.ForUnixContainer().UntilHttpRequestIsSucceeded(r => r
+                .ForPort(9200)
+                .ForPath("/")))
             .Build();
 
+        TestContext.WriteLine("Starting Elasticsearch container...");
         await _elasticsearchContainer.StartAsync();
+        TestContext.WriteLine("Elasticsearch container started!");
         
         _elasticsearchUrl = _elasticsearchContainer.GetConnectionString();
         TestContext.WriteLine($"Elasticsearch URL from container: {_elasticsearchUrl}");
@@ -36,11 +44,14 @@ public class ElasticsearchLoggingTests
             TestContext.WriteLine($"Corrected to HTTP: {_elasticsearchUrl}");
         }
         
-        // Create Elasticsearch client for verification
+        // Create Elasticsearch client for verification with explicit timeouts
         // Note: ElasticsearchClientSettings is not disposable in Elastic.Clients.Elasticsearch 8.x
-        _elasticsearchClient = new ElasticsearchClient(
-            new ElasticsearchClientSettings(new Uri(_elasticsearchUrl))
-                .DefaultIndex("test-logs"));
+        var settings = new ElasticsearchClientSettings(new Uri(_elasticsearchUrl))
+            .DefaultIndex("test-logs")
+            .RequestTimeout(TimeSpan.FromSeconds(5))
+            .PingTimeout(TimeSpan.FromSeconds(2));
+        
+        _elasticsearchClient = new ElasticsearchClient(settings);
 
         // Wait for Elasticsearch to be ready
         await WaitForElasticsearchAsync();
@@ -256,30 +267,39 @@ public class ElasticsearchLoggingTests
 
     private async Task WaitForElasticsearchAsync()
     {
-        var maxAttempts = 90; // Increase timeout to 90 seconds for Elasticsearch 8.x
+        var maxAttempts = 30; // 30 seconds should be enough with proper timeouts
+        TestContext.WriteLine($"Starting Elasticsearch readiness check at {_elasticsearchUrl}");
+        
         for (int i = 0; i < maxAttempts; i++)
         {
             try
             {
+                TestContext.WriteLine($"Attempt {i + 1}/{maxAttempts}: Pinging Elasticsearch...");
                 var pingResponse = await _elasticsearchClient!.PingAsync();
+                
+                TestContext.WriteLine($"Ping response - IsValidResponse: {pingResponse.IsValidResponse}, " +
+                                     $"ApiCallDetails: {pingResponse.ApiCallDetails?.DebugInformation ?? "null"}");
+                
                 if (pingResponse.IsValidResponse)
                 {
-                    TestContext.WriteLine($"Elasticsearch ready after {i + 1} attempts");
+                    TestContext.WriteLine($"✓ Elasticsearch ready after {i + 1} attempts");
                     return;
                 }
+                
+                TestContext.WriteLine($"Ping returned invalid response, retrying...");
             }
             catch (Exception ex)
             {
-                // Log occasional status updates
-                if (i % 10 == 0)
+                TestContext.WriteLine($"Attempt {i + 1}/{maxAttempts} failed: {ex.GetType().Name}: {ex.Message}");
+                if (ex.InnerException != null)
                 {
-                    TestContext.WriteLine($"Waiting for Elasticsearch... attempt {i + 1}/{maxAttempts}: {ex.Message}");
+                    TestContext.WriteLine($"  Inner: {ex.InnerException.GetType().Name}: {ex.InnerException.Message}");
                 }
             }
 
             await Task.Delay(1000);
         }
 
-        throw new Exception("Elasticsearch did not become ready in time");
+        throw new Exception($"Elasticsearch did not become ready in time after {maxAttempts} attempts. URL: {_elasticsearchUrl}");
     }
 }

@@ -17,8 +17,7 @@ public class LokiLoggingTests
     public async Task OneTimeSetup()
     {
         // Start Loki container
-        _lokiContainer = new ContainerBuilder()
-            .WithImage("grafana/loki:3.5.8")
+        _lokiContainer = new ContainerBuilder(image: "grafana/loki:3.5.8")
             .WithPortBinding(3100, true)
             .WithWaitStrategy(Wait.ForUnixContainer().UntilHttpRequestIsSucceeded(r => r
                 .ForPort(3100)
