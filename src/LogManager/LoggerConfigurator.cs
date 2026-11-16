@@ -252,12 +252,12 @@ public static class LoggerConfigurator
 
         loggerConfig.WriteTo.GrafanaLoki(
             uri: lokiOptions.Url,
-            labels: labels,
+            labels: labels.ToArray(),
             credentials: credentials,
             textFormatter: new Serilog.Formatting.Display.MessageTemplateTextFormatter(lokiOptions.OutputTemplate),
-            batchPostingLimit: lokiOptions.BatchPostingLimit,
+            batchSizeLimit: lokiOptions.BatchPostingLimit,
             period: lokiOptions.Period,
-            queueLimit: lokiOptions.QueueLimit,
+            queueLimit: lokiOptions.QueueLimit ?? int.MaxValue,
             tenant: lokiOptions.TenantId
         );
     }
